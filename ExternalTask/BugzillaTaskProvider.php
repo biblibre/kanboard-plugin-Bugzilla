@@ -25,7 +25,6 @@ class BugzillaTaskProvider extends Base implements ExternalTaskProviderInterface
     public function fetch($uri)
     {
         $bug = $this->bugzillaClient->getBug($uri);
-        $bug['comments'] = $this->bugzillaClient->getBugComments($uri);
 
         return new BugzillaTask($uri, $bug);
     }

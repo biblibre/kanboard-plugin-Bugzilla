@@ -37,7 +37,6 @@ class BugzillaTask implements ExternalTaskInterface
         return array(
             'title' => $title,
             'reference' => $this->bug['id'],
-            'description' => $this->bug['comments'][0]['text'],
         );
     }
 }
