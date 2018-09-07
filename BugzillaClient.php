@@ -14,9 +14,11 @@ class BugzillaClient extends Base
     public function getBug($uri)
     {
         $bugs = $this->httpClient->getJson($uri);
-        $bug = $bugs['bugs'][0];
+        if (!isset($bugs['bugs'])) {
+            return null;
+        }
 
-        return $bug;
+        return $bugs['bugs'][0];
     }
 
     public function getBugComments($uri, $new_since = null)

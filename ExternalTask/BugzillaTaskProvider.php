@@ -4,6 +4,9 @@ namespace Kanboard\Plugin\Bugzilla\ExternalTask;
 
 use Kanboard\Core\Base;
 use Kanboard\Core\ExternalTask\ExternalTaskProviderInterface;
+use Kanboard\Core\ExternalTask\ExternalTaskException;
+use Kanboard\Core\ExternalTask\NotFoundException;
+use Kanboard\Model\TaskModel;
 
 class BugzillaTaskProvider extends Base implements ExternalTaskProviderInterface
 {
@@ -25,6 +28,9 @@ class BugzillaTaskProvider extends Base implements ExternalTaskProviderInterface
     public function fetch($uri)
     {
         $bug = $this->bugzillaClient->getBug($uri);
+        if (!isset($bug)) {
+            throw new NotFoundException("Bug not found");
+        }
 
         return new BugzillaTask($uri, $bug);
     }
@@ -56,6 +62,25 @@ class BugzillaTaskProvider extends Base implements ExternalTaskProviderInterface
 
     public function buildTaskUri(array $formValues)
     {
-        return $this->bugzillaClient->getApiUrl(trim($formValues['id']));
+        $taskUri = $this->bugzillaClient->getApiUrl(trim($formValues['id']));
+
+        // If at task creation, check that no existing task in this project
+        // already references this bug
+        $controller = $this->request->getStringParam('controller');
+        if ($controller === 'ExternalTaskCreationController') {
+            $project_id = $this->request->getIntegerParam('project_id');
+
+            $task = $this->db
+                ->table(TaskModel::TABLE)
+                ->eq(TaskModel::TABLE.'.project_id', $project_id)
+                ->eq(TaskModel::TABLE.'.external_uri', $taskUri)
+                ->findOne();
+
+            if ($task) {
+                throw new ExternalTaskException("An existing task (#{$task['id']}) already references this bug");
+            }
+        }
+
+        return $taskUri;
     }
 }
