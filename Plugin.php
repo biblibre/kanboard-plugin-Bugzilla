@@ -13,6 +13,8 @@ class Plugin extends Base
     public function initialize()
     {
         $this->template->hook->attach('template:config:integrations', 'Bugzilla:config/integration');
+        $this->template->hook->attach('template:layout:js', 'plugins/Bugzilla/assets/js/Bugzilla.js');
+        $this->template->hook->attach('template:board:task:footer', 'Bugzilla:layout/footer');
 
         $provider = new BugzillaTaskProvider($this->container);
         $this->externalTaskManager->register($provider);
@@ -22,6 +24,10 @@ class Plugin extends Base
 
         $subscriber = new BugzillaSubscriber($this->container);
         $this->dispatcher->addSubscriber($subscriber);
+
+        $this->route->addRoute('/bugzilla', 'Bugzilla', 'show', 'Bugzilla');
+
+        $this->helper->register('bugzilla', '\Kanboard\Plugin\Bugzilla\Helper\Bugzilla');
     }
 
     public function onStartup()
