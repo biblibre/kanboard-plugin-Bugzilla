@@ -13,7 +13,7 @@ class Bugzilla extends BaseController {
         }
 
         $provider = new BugzillaTaskProvider($this->container);
-        $bugzillaTask = $provider->fetch($task['external_uri']);
+        $bugzillaTask = $provider->fetch($task['external_uri'], $task['project_id']);
         if (!$bugzillaTask) {
             return $this->response->json(array('error' => 'bugzilla issue not found'));
         }
